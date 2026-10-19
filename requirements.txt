@@ -7,3 +7,4 @@ xgboost
 statsmodels
 streamlit
 joblib
+tensorflow
