@@ -1,15 +1,18 @@
-
 import streamlit as st
 import joblib
 import pandas as pd
 import numpy as np
 
-st.set_page_config(page_title="Energy Forecast", page_icon="⚡")
+st.set_page_config(page_title="Energy Forecast")
 
-st.title(" Hourly Energy Consumption Forecast")
+st.title("Hourly Energy Consumption Forecast")
 st.write("Electricity demand prediction using XGBoost")
 
-model = joblib.load("xgboost_model.pkl")
+@st.cache_resource
+def load_model():
+    return joblib.load("xgboost_model.pkl")
+
+model = load_model()
 expected_features = model.get_booster().feature_names
 
 st.subheader("Select Forecast Time")
@@ -19,7 +22,6 @@ hour = st.slider("Hour", 0, 23, 12)
 
 st.subheader("Historical Energy Values")
 
-pjmw_mw = st.number_input("Current / Latest PJMW_MW", value=5000.0)
 lag_1 = st.number_input("Consumption 1 Hour Ago", value=5000.0)
 lag_24 = st.number_input("Consumption 24 Hours Ago", value=5000.0)
 lag_168 = st.number_input("Consumption 168 Hours Ago", value=5000.0)
@@ -30,7 +32,6 @@ if st.button("Predict Energy Consumption"):
     dt = pd.Timestamp(date) + pd.Timedelta(hours=hour)
 
     features = {
-        "PJMW_MW": pjmw_mw,
         "hour": dt.hour,
         "day_of_week": dt.dayofweek,
         "month": dt.month,
@@ -65,4 +66,7 @@ if st.button("Predict Energy Consumption"):
         except Exception as e:
             st.error(f"Prediction failed: {e}")
 
-st.caption("Forecast accuracy depends on providing valid historical values.")
+st.caption(
+    "Prediction quality depends on accurate historical values "
+    "and consistency with the training features."
+)
